@@ -1,0 +1,15 @@
+{
+  "name": "ymparistokuntoon",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "license": "AGPLv3",
+  "dependencies": {
+    "express": "*",
+    "jade": "*",
+    "mongoose": "*",
+    "body-parser": "*"
+  }
+}
