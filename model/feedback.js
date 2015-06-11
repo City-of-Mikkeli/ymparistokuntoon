@@ -1,19 +1,22 @@
 var mongoose = require('mongoose');
-var commentSchema = require('./comment.js');
 
 var feedbackSchema = mongoose.Schema({
 		text : String,
 		created : Date,
-		author : String,
+		image_id : String,
+		author : {
+		  name : String,
+		  email : String,
+		  phone : String
+		},
 		coordinates : {
 			lat : Number,
 			lng : Number
 		},
-		comments : [commentSchema]
+		reply : {
+		  text : String,
+		  replied : Date
+		}
 });
-
-feedbackSchema.methods.addComment = function(comment){
-	this.comments.push(comment);
-};
 
 module.exports = feedbackSchema;
