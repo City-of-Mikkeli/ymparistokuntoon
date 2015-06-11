@@ -5,25 +5,69 @@
 		
 		var markers = {};
 		
+		var current_position;
+		
 		var feedbackOpen = "notopen";
 		
-		var addFeedbackForm = '<form data-closeonsubmit="true" data-ajaxsubmit="true" role="form" action="'+SERVER_ROOT+'/feedback" method="post">' +
-		'<div class="form-group">'+
-	    '	<label for="feedbackBodyInput">Palaute, kehitysidea tai muu</label>'+
+		var addFeedbackForm = '<div class="form-group">'+
+		  '<label for="feedbackClassInput">Tyyppi</label>'+
+		  '<select id="feedbackClassInput" class="form-control">'+
+  		  '<option value="Raivauskohde">Raivauskohde</option>'+
+  		  '<option value="Siivouskohde">Siivouskohde</option>'+
+  		  '<option value="vieraslajitorjunnat">vieraslajitorjunnat</option>'+
+  		  '<option value="retkeilyalueen epäkohdat">retkeilyalueen epäkohdat</option>'+
+  		  '<option value="other">muu</option>'+
+		  '</select>'+
+		  '</div>'+  
+		  '<div class="form-group">'+
+	    '	<label for="feedbackBodyInput">Kuvaus</label>'+
 	    '	<textarea name="text" class="form-control" id="feedbackBodyInput"></textarea>'+
 	    '</div>'+
-		'<div class="form-group">'+
-	    '	<input name="author" type="text" class="form-control" id="feedbackNameInput" placeholder="Nimi (vapaaehtoinen)" />'+
+	    '<div class="form-group">'+
+	    ' <label for="feedbackNameInput">Nimi</label>'+
+	    '	<input name="name" type="text" class="form-control" id="feedbackNameInput" placeholder="nimi" />'+
 	    '</div>'+
+      '<div class="form-group">'+
+      ' <label for="feedbackEmailInput">Email</label>'+
+      ' <input name="email" type="email" class="form-control" id="feedbackEmailInput" placeholder="sähköposti" />'+
+      '</div>'+
+      '<div class="form-group">'+
+      ' <label for="feedbackPhoneInput">Puhelin</label>'+
+      ' <input name="phone" type="text" class="form-control" id="feedbackPhoneInput" placeholder="puhelin" />'+
+      '</div>'+
 	    '<input name="lat" type="hidden" value="{!LAT!}" />' +
 	    '<input name="lng" type="hidden" value="{!LNG!}" />' +
-		'<button class="btn btn-primary">Tallenna</button>' +
-		'</form>';
+	    '<div class="form-group">'+
+  	    '<form id="image-uploader-form" action="'+SERVER_ROOT+'/image" method="post" >'+
+    	    '<input id="current-image-id" type="hidden" name="current_id" value="" />' +
+    	    '<label for="image-uploader-input">Kuva</label>'+
+          '<input type="file" id="image-uploader-input" name="image" ></input>'+
+        '</form>'+
+      '</div>'+
+	    '<button class="btn btn-primary">Tallenna</button>';
 		
 		var showModal = function(content){
 			$('#modalContentDiv').html('');
 			$('#modalContentDiv').html(content);
 			$('#commonModalDiv').modal('show');
+			if($('#image-uploader-input').length > 0){
+			  $('#image-uploader-input').picEdit({
+			    maxWidth: 'auto',
+			    imageUpdated: function(img){
+			     $('#image-uploader-form').submit();
+			   },formSubmitted: function(res){
+			     var resObject = JSON.parse(res.response);
+			     $('#current-image-id').val(resObject._id);
+			   }
+			  });
+			}
+			$('#feedbackClassInput').change(function(e){
+			  if($(this).val() === 'other'){
+			    $(this).parent().after('<div id="feedbackOtherTypeContainer" class="form-group"><input name="type" type="text" class="form-control" id="feedbackOtherTypeInput" placeholder="mikä?" /></div>');
+			  }else{
+			    $('#feedbackOtherTypeContainer').remove();
+			  }
+			});
 		};
 		
 		var getFormValues = function(e){
@@ -97,14 +141,22 @@
 			});
 		};
 		
-        var map = L.map('map', {attributionControl : false}).setView([-32.39852, -59.23828], 3);
-        L.tileLayer(SERVER_ROOT+'/tiles/{z}/{x}/{y}.png', {
-            minZoom: 2,
-            maxZoom: 6,
-            tms: true
-        }).addTo(map);
+		var getCurrentPosition = function(callback){
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(callback);
+      } else {
+        alert('Geolocation is not supported by this browser.');
+      }
+		};
+		
+    var map = L.map('map', {attributionControl : false}).setView([61.67371, 27.29871], 13);
+    L.tileLayer("http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      subdomains: ["otile1", "otile2", "otile3", "otile4"],
+      attribution: 'Tiles courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">. Map data (c) <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> contributors, CC-BY-SA.'
+    }).addTo(map);
         
-        $('.infoBtn').click(function(e){
+        /*$('.infoBtn').click(function(e){ //TODO: add correct instructions
         	e.preventDefault();
         	var infoHtml = '<h4> Osallistu uudistetun Mikkelin kaupunkikeskustan suunnitelman ideointiin!</h4>';
         	infoHtml += '<p>Alla on piirretty City2020 suunnitelmien pohjalta uudistettu kaupunkikeskustan kartta. Haluamme kuulla sinun kommenttisi ideoihin. Olisiko sinulla parannusehdotuksia tai ideoita esittää suunnitelmaan? Klikkaa haluamaasi kohtaa ja kirjoita kommenttisi. Voit myös kommentoida muiden jättämiä kirjoituksia. Karttasovellus on avoinna lokakuun ajan ja toivomme mahdollisimman suurta osallistumista.</p>';
@@ -118,6 +170,22 @@
         	infoHtml += '</address>';
         	
         	showModal(infoHtml);
+        });*/
+        
+        $('#new-feedback-btn').click(function(e){
+          e.preventDefault();
+          if(typeof(current_position) !== 'undefined'){
+            var feedbackHtml = addFeedbackForm.replace('{!LAT!}', current_position.coords.latitude);
+            feedbackHtml = feedbackHtml.replace('{!LNG!}', current_position.coords.longitude);
+            showModal(feedbackHtml);
+          }else{
+            getCurrentPosition(function(position){
+              var feedbackHtml = addFeedbackForm.replace('{!LAT!}', position.coords.latitude);
+              feedbackHtml = feedbackHtml.replace('{!LNG!}', position.coords.longitude);
+              showModal(feedbackHtml);
+            });
+          }
+
         });
         
         $(document).on('submit', function(e){
@@ -146,8 +214,11 @@
         });
         
         map.on('click', mapClick);
-        updateMarkers();
-        setInterval(function(){updateMarkers()}, 3000);
+        //updateMarkers();
+        //setInterval(function(){updateMarkers()}, 3000);
+        getCurrentPosition(function(position){
+          current_position = position;
+        });
         
         $('.infoBtn').popover('show');
         
