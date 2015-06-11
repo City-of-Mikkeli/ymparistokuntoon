@@ -3,7 +3,7 @@
  */
 
 var HOST = 'localhost';
-var DB = 'city2020';
+var DB = 'ymparisto';
 
 exports.getConnectionUrl = function(){
 	return 'mongodb://'+HOST+'/'+DB;
