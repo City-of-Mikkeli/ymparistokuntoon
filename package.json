@@ -10,6 +10,8 @@
     "express": "*",
     "jade": "*",
     "mongoose": "*",
-    "body-parser": "*"
+    "body-parser": "*",
+    "gm": "*",
+    "multer": "*"
   }
 }

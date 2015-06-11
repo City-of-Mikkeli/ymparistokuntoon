@@ -1,13 +1,12 @@
-
 var express = require('express');
-var routes = require('./routes');
 var http = require('http');
 var path = require('path');
 var mongoose = require('mongoose');
 var database = require('./config/database.js');
 var bodyParser = require('body-parser');
+var multer = require('multer');
 
-var SERVER_ROOT = '/city2020';
+var SERVER_ROOT = '/ymparistokuntoon';
 
 mongoose.connect(database.getConnectionUrl());
 var datastore = mongoose.connection;
@@ -37,14 +36,11 @@ datastore.once('open', function() {
 	app.set('views', path.join(__dirname, 'views'));
 	app.set('view engine', 'jade');
 	app.use(express.static(path.join(__dirname, 'public')));
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded());
+	app.use(bodyParser.json({limit: '50mb'}));
+	app.use(bodyParser.urlencoded({limit: '50mb'}));
+	app.use(multer({inMemory: true}));
 	
-	app.get(SERVER_ROOT, routes.index);
-	app.get(SERVER_ROOT+'/feedback', routes.getFeedback);
-	
-	app.post(SERVER_ROOT+'/feedback', routes.addFeedback);
-	app.post(SERVER_ROOT+'/comment/:id', routes.addComment);
+	require('./routes')(app);
 
 	http.createServer(app).listen(app.get('port'), function(){
 	  console.log('Express server listening on port ' + app.get('port'));
