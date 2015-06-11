@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
-var commentSchema = require('./comment.js');
 var feedbackSchema = require('./feedback.js');
+var imageSchema = require('./image.js');
 
-exports.Comment = mongoose.model('Comment', commentSchema);
 exports.Feedback = mongoose.model('Feedback', feedbackSchema);
+exports.Image = mongoose.model('Image', imageSchema);
