@@ -35,8 +35,8 @@
       ' <label for="feedbackPhoneInput">Puhelin</label>'+
       ' <input name="phone" type="text" class="form-control" id="feedbackPhoneInput" placeholder="puhelin" />'+
       '</div>'+
-	    '<input name="lat" type="hidden" value="{!LAT!}" />' +
-	    '<input name="lng" type="hidden" value="{!LNG!}" />' +
+	    '<input id="feedbackLatInput" name="lat" type="hidden" value="{!LAT!}" />' +
+	    '<input id="feedbackLngInput" name="lng" type="hidden" value="{!LNG!}" />' +
 	    '<div class="form-group">'+
   	    '<form id="image-uploader-form" action="'+SERVER_ROOT+'/image" method="post" >'+
     	    '<input id="current-image-id" type="hidden" name="current_id" value="" />' +
@@ -44,7 +44,7 @@
           '<input type="file" id="image-uploader-input" name="image" ></input>'+
         '</form>'+
       '</div>'+
-	    '<button class="btn btn-primary">Tallenna</button>';
+	    '<button id="addFeedbackBtn" class="btn btn-primary">Tallenna</button>';
 		
 		var showModal = function(content){
 			$('#modalContentDiv').html('');
@@ -67,6 +67,22 @@
 			  }else{
 			    $('#feedbackOtherTypeContainer').remove();
 			  }
+			});
+			$('#addFeedbackBtn').click(function(e){
+			  var feedbackData = {
+			    type: $('#feedbackClassInput').val() === 'other' ? $('#feedbackOtherTypeInput').val : $('#feedbackClassInput').val(),
+			    name: $('#feedbackNameInput').val(),
+			    email: $('#feedbackEmailInput').val(),
+			    phone: $('#feedbackPhoneInput').val(),
+			    text: $('#feedbackBodyInput').val(),
+			    lat: $('#feedbackLatInput').val(),
+			    lng: $('#feedbackLngInput').val(),
+			    image_id: $('#current-image-id').val()
+			  };
+			  $.post(SERVER_ROOT+'/feedback', feedbackData, function(feedback){
+			    $('#commonModalDiv').modal('hide');
+			    addMarker(feedback);
+			  });
 			});
 		};
 		
@@ -214,9 +230,10 @@
         });
         
         map.on('click', mapClick);
-        //updateMarkers();
+        updateMarkers();
         //setInterval(function(){updateMarkers()}, 3000);
         getCurrentPosition(function(position){
+          map.setView([position.coords.latitude, position.coords.longitude],18);
           current_position = position;
         });
         

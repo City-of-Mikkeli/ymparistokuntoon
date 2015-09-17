@@ -26,12 +26,9 @@ exports.addFeedback = function(req, res){
 };
 
 exports.getFeedback = function(req, res){
-  /*Feedback.find(function(err, feedbacks){
-    if(!err){
-      res.send(feedbacks);
-    }
-  });*/
-  res.send('sdaadsdsa');
+  feedbackDAO.list(function(feedbacks){
+    res.send(feedbacks);
+  });
 };
 
 exports.addReply = function(req, res){
